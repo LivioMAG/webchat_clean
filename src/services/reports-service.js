@@ -121,6 +121,7 @@ function resetAppState() {
   state.projectSearchQuery = '';
   state.editingProjectId = null;
   state.showControlledReports = false;
+  state.showConfirmedCommissionFilterOptions = false;
   state.isAbsenceControlModalOpen = false;
   state.isHolidayControlModalOpen = false;
   state.absenceFilterQuery = '';
