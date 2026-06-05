@@ -1448,7 +1448,6 @@ function applyCreateReportTypeFieldState() {
     elements.editPauseMinutesField,
     elements.editOtherCostsAmountField,
     elements.editNotesField,
-    elements.reportEditAttachmentsField,
   ];
 
   normalOnlyFields.forEach((field) => field?.classList.toggle('hidden', isSpecialAbsence));
@@ -1724,11 +1723,16 @@ function openSpecialReportEditModal(report) {
   elements.specialEditReportId.value = report.id;
   if (elements.specialReportEditContext) {
     const employeeName = profile?.full_name ?? 'Unbekannt';
-    elements.specialReportEditContext.textContent = `${employeeName} · ${formatDate(report.work_date)} · Absenzart, Stunden und Spesen anpassen.`;
+    elements.specialReportEditContext.textContent = `${employeeName} · ${formatDate(report.work_date)} · Absenzart, Stunden, Spesen und Anhänge anpassen.`;
   }
   renderSpecialReportEditAbsenceTypeOptions(report.abz_typ);
   elements.specialEditTotalMinutes.value = Number(report.total_work_minutes || 0);
   elements.specialEditExpensesAmount.value = Number(report.expenses_amount || 0);
+  state.editingReportAttachments = normalizeReportEditAttachments(report.attachments);
+  if (elements.specialReportEditAttachmentUpload) {
+    elements.specialReportEditAttachmentUpload.value = '';
+  }
+  renderSpecialReportEditAttachmentManager();
   elements.specialReportEditModal.classList.remove('hidden');
 }
 
@@ -1736,6 +1740,7 @@ function closeSpecialReportEditModal() {
   if (state.editingReportId && elements.specialReportEditModal && !elements.specialReportEditModal.classList.contains('hidden')) {
     state.editingReportId = null;
   }
+  state.editingReportAttachments = [];
   if (!elements.specialReportEditModal || !elements.specialReportEditForm) {
     return;
   }
@@ -1744,6 +1749,55 @@ function closeSpecialReportEditModal() {
   if (elements.specialEditAbsenceType) {
     elements.specialEditAbsenceType.innerHTML = '';
   }
+  if (elements.specialReportEditAttachments) {
+    elements.specialReportEditAttachments.innerHTML = '';
+  }
+  if (elements.specialReportEditAttachmentUpload) {
+    elements.specialReportEditAttachmentUpload.value = '';
+  }
+}
+
+function renderSpecialReportEditAttachmentManager() {
+  if (!elements.specialReportEditAttachments) {
+    return;
+  }
+
+  const attachments = Array.isArray(state.editingReportAttachments) ? state.editingReportAttachments : [];
+  if (!attachments.length) {
+    elements.specialReportEditAttachments.innerHTML = '<span class="subtle-text">Keine Anhänge vorhanden.</span>';
+    return;
+  }
+
+  elements.specialReportEditAttachments.innerHTML = attachments.map((attachment, index) => {
+    const url = getAttachmentUrl(attachment);
+    const name = escapeHtml(attachment.name || `Anhang ${index + 1}`);
+    const key = escapeAttribute(attachment.__editKey || buildReportEditAttachmentKey(attachment, index));
+    const link = url && url !== '#'
+      ? `<a href="${escapeAttribute(url)}" target="_blank" rel="noreferrer">${name}</a>`
+      : `<span class="subtle-text">${name} (kein Download-Link)</span>`;
+
+    return `
+      <div class="report-edit-attachment-item">
+        <span>${link}</span>
+        <button class="button button-secondary report-edit-attachment-remove" type="button" data-action="remove-special-report-attachment" data-attachment-key="${key}">Entfernen</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function handleSpecialReportEditAttachmentsClick(event) {
+  const button = event.target.closest('[data-action="remove-special-report-attachment"]');
+  if (!button || state.isSavingReport) {
+    return;
+  }
+
+  const key = String(button.dataset.attachmentKey || '');
+  state.editingReportAttachments = (state.editingReportAttachments || []).filter((attachment) => attachment.__editKey !== key);
+  renderSpecialReportEditAttachmentManager();
+}
+
+function getSelectedSpecialReportEditUploadFiles() {
+  return Array.from(elements.specialReportEditAttachmentUpload?.files || []);
 }
 
 async function handleSpecialReportEditSubmit(event) {
@@ -1762,6 +1816,15 @@ async function handleSpecialReportEditSubmit(event) {
   const selectedAbsenceTypeCode = Number(elements.specialEditAbsenceType.value || existingReport.abz_typ);
   const selectedAbsenceLabel = getEditableSpecialAbsenceLabel(selectedAbsenceTypeCode);
   const totalWorkMinutes = Math.max(0, Number(elements.specialEditTotalMinutes.value || 0));
+  const keptAttachments = stripReportEditAttachmentKeys(state.editingReportAttachments || []);
+  const removedAttachments = getRemovedReportAttachments(existingReport.attachments, state.editingReportAttachments || []);
+  const uploadFiles = getSelectedSpecialReportEditUploadFiles();
+  const reportForAttachmentMetadata = {
+    ...existingReport,
+    commission_number: selectedAbsenceLabel,
+    project_name: selectedAbsenceLabel,
+  };
+  let uploadedAttachments = [];
   const updates = {
     commission_number: selectedAbsenceLabel,
     project_name: selectedAbsenceLabel,
@@ -1777,16 +1840,30 @@ async function handleSpecialReportEditSubmit(event) {
 
   state.isSavingReport = true;
   try {
+    uploadedAttachments = await uploadWeeklyReportAttachments({
+      reportId,
+      files: uploadFiles,
+      report: reportForAttachmentMetadata,
+    });
+    const updatesWithAttachments = {
+      ...updates,
+      attachments: [...keptAttachments, ...uploadedAttachments],
+    };
+
     if (state.isDemoMode) {
-      updateDemoReport(reportId, updates);
+      updateDemoReport(reportId, updatesWithAttachments);
     } else {
-      const { error } = await state.supabase.from('weekly_reports').update(updates).eq('id', reportId);
+      const { error } = await state.supabase.from('weekly_reports').update(updatesWithAttachments).eq('id', reportId);
       if (error) throw error;
     }
 
+    await deleteWeeklyReportAttachmentsSafely(removedAttachments);
     await loadData();
     closeSpecialReportEditModal();
   } catch (error) {
+    if (uploadedAttachments.length) {
+      await deleteWeeklyReportAttachmentsSafely(uploadedAttachments);
+    }
     console.error(error);
     alert(`Spezialrapport konnte nicht aktualisiert werden: ${error.message}`);
   } finally {
@@ -1956,11 +2033,11 @@ async function handleReportEditSubmit(event) {
       ...buildAdjustedMinutesUpdatePayload(existingReport, baseAdjustedMinutes),
     };
 
-  const keptAttachments = isSpecialAbsence ? [] : stripReportEditAttachmentKeys(state.editingReportAttachments || []);
+  const keptAttachments = stripReportEditAttachmentKeys(state.editingReportAttachments || []);
   const removedAttachments = existingReport
     ? getRemovedReportAttachments(existingReport.attachments, state.editingReportAttachments || [])
     : [];
-  const uploadFiles = isSpecialAbsence ? [] : getSelectedReportEditUploadFiles();
+  const uploadFiles = getSelectedReportEditUploadFiles();
   const savedReportId = isCreating ? crypto.randomUUID() : reportId;
   const reportForAttachmentMetadata = {
     ...(existingReport || {}),

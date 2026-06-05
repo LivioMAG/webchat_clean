@@ -142,6 +142,8 @@ function cacheElements() {
   elements.specialEditAbsenceType = document.getElementById('specialEditAbsenceType');
   elements.specialEditTotalMinutes = document.getElementById('specialEditTotalMinutes');
   elements.specialEditExpensesAmount = document.getElementById('specialEditExpensesAmount');
+  elements.specialReportEditAttachments = document.getElementById('specialReportEditAttachments');
+  elements.specialReportEditAttachmentUpload = document.getElementById('specialReportEditAttachmentUpload');
   elements.adjustedMinutesModal = document.getElementById('adjustedMinutesModal');
   elements.adjustedMinutesForm = document.getElementById('adjustedMinutesForm');
   elements.adjustedReportId = document.getElementById('adjustedReportId');
@@ -327,6 +329,7 @@ function bindEvents() {
   elements.closeSpecialReportEditModalButton.addEventListener('click', closeSpecialReportEditModal);
   elements.cancelSpecialReportEditButton.addEventListener('click', closeSpecialReportEditModal);
   elements.specialReportEditForm.addEventListener('submit', handleSpecialReportEditSubmit);
+  elements.specialReportEditAttachments?.addEventListener('click', handleSpecialReportEditAttachmentsClick);
   elements.editStartTime.addEventListener('change', syncEditedWorkMinutesWithTimeRange);
   elements.editEndTime.addEventListener('change', syncEditedWorkMinutesWithTimeRange);
   elements.editStartTime.addEventListener('input', syncEditedWorkMinutesWithTimeRange);
