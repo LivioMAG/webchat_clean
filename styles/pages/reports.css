@@ -976,13 +976,45 @@
 }
 
 .report-edit-upload-label {
-  display: grid;
-  gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+}
+
+.report-edit-upload-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.report-edit-upload-button:hover,
+.report-edit-upload-button:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: #eef6ff;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.16);
+  transform: translateY(-1px);
+}
+
+.report-edit-upload-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .report-edit-upload-label input[type="file"] {
-  padding: 10px;
-  border: 1px dashed var(--panel-border);
-  border-radius: 10px;
-  background: var(--panel-strong);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

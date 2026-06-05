@@ -1718,13 +1718,8 @@ function getRemovedReportAttachments(existingAttachments = [], keptAttachments =
 }
 
 function openSpecialReportEditModal(report) {
-  const profile = getProfileById(report.profile_id);
   state.editingReportId = report.id;
   elements.specialEditReportId.value = report.id;
-  if (elements.specialReportEditContext) {
-    const employeeName = profile?.full_name ?? 'Unbekannt';
-    elements.specialReportEditContext.textContent = `${employeeName} · ${formatDate(report.work_date)} · Absenzart, Stunden, Spesen und Anhänge anpassen.`;
-  }
   renderSpecialReportEditAbsenceTypeOptions(report.abz_typ);
   elements.specialEditTotalMinutes.value = Number(report.total_work_minutes || 0);
   elements.specialEditExpensesAmount.value = Number(report.expenses_amount || 0);
