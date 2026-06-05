@@ -193,6 +193,13 @@
   margin: 12px 0;
 }
 
+.report-filter-confirmed-toggle.is-active,
+.report-filter-confirmed-toggle[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: rgba(215, 0, 21, 0.3);
+  background: rgba(215, 0, 21, 0.08);
+}
+
 .column-filter-search-label {
   flex: 1 1 auto;
 }
