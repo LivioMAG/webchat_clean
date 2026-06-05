@@ -944,3 +944,45 @@
   gap: 4px;
   vertical-align: top;
 }
+
+.report-edit-attachments-field {
+  display: grid;
+  gap: 8px;
+}
+
+.report-edit-attachment-list {
+  gap: 8px;
+}
+
+.report-edit-attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.report-edit-attachment-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.report-edit-attachment-remove {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+}
+
+.report-edit-upload-label {
+  display: grid;
+  gap: 6px;
+}
+
+.report-edit-upload-label input[type="file"] {
+  padding: 10px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-strong);
+}

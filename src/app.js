@@ -131,6 +131,7 @@ function cacheElements() {
   elements.editNotes = document.getElementById('editNotes');
   elements.reportEditAttachmentsField = document.getElementById('reportEditAttachmentsField');
   elements.reportEditAttachments = document.getElementById('reportEditAttachments');
+  elements.reportEditAttachmentUpload = document.getElementById('reportEditAttachmentUpload');
   elements.saveReportEditButton = document.getElementById('saveReportEditButton');
   elements.specialReportEditModal = document.getElementById('specialReportEditModal');
   elements.specialReportEditForm = document.getElementById('specialReportEditForm');
@@ -321,6 +322,7 @@ function bindEvents() {
   elements.closeReportEditModalButton.addEventListener('click', closeReportEditModal);
   elements.cancelReportEditButton.addEventListener('click', closeReportEditModal);
   elements.reportEditForm.addEventListener('submit', handleReportEditSubmit);
+  elements.reportEditAttachments?.addEventListener('click', handleReportEditAttachmentsClick);
   elements.createReportTypeSelect?.addEventListener('change', handleCreateReportTypeChange);
   elements.closeSpecialReportEditModalButton.addEventListener('click', closeSpecialReportEditModal);
   elements.cancelSpecialReportEditButton.addEventListener('click', closeSpecialReportEditModal);

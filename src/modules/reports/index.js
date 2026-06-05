@@ -1518,9 +1518,11 @@ function openReportCreateModal() {
   elements.editNotes.value = '';
   elements.editStartTime.disabled = false;
   elements.editEndTime.disabled = false;
-  if (elements.reportEditAttachments) {
-    elements.reportEditAttachments.innerHTML = '–';
+  state.editingReportAttachments = [];
+  if (elements.reportEditAttachmentUpload) {
+    elements.reportEditAttachmentUpload.value = '';
   }
+  renderReportEditAttachmentManager();
   applyCreateReportTypeFieldState();
   elements.reportEditModal.classList.remove('hidden');
 }
@@ -1553,9 +1555,11 @@ function openReportEditModal(reportId) {
   const pauseMinutes = Number(report.lunch_break_minutes || 0) + Number(report.additional_break_minutes || 0);
   state.editingReportPauseMinutes = pauseMinutes;
   elements.editPauseMinutes.value = pauseMinutes;
-  if (elements.reportEditAttachments) {
-    elements.reportEditAttachments.innerHTML = renderAttachmentLinks(report.attachments);
+  state.editingReportAttachments = normalizeReportEditAttachments(report.attachments);
+  if (elements.reportEditAttachmentUpload) {
+    elements.reportEditAttachmentUpload.value = '';
   }
+  renderReportEditAttachmentManager();
   applyCreateReportTypeFieldState();
   applyReportEditTimeFieldState(report);
   elements.reportEditModal.classList.remove('hidden');
@@ -1565,6 +1569,7 @@ function closeReportEditModal() {
   state.editingReportId = null;
   state.isCreatingReport = false;
   state.editingReportPauseMinutes = 0;
+  state.editingReportAttachments = [];
   if (!elements.reportEditModal || !elements.reportEditForm) {
     return;
   }
@@ -1578,6 +1583,139 @@ function closeReportEditModal() {
   if (elements.reportEditAttachments) {
     elements.reportEditAttachments.innerHTML = '';
   }
+  if (elements.reportEditAttachmentUpload) {
+    elements.reportEditAttachmentUpload.value = '';
+  }
+}
+
+function normalizeReportEditAttachments(attachments = []) {
+  if (!Array.isArray(attachments)) {
+    return [];
+  }
+
+  return attachments.map((attachment, index) => ({
+    ...attachment,
+    __editKey: buildReportEditAttachmentKey(attachment, index),
+  }));
+}
+
+function buildReportEditAttachmentKey(attachment, index) {
+  const path = String(attachment?.path || '').trim();
+  const publicUrl = String(attachment?.publicUrl || '').trim();
+  const name = String(attachment?.name || '').trim();
+  return encodeURIComponent([path, publicUrl, name, index].join('|'));
+}
+
+function stripReportEditAttachmentKeys(attachments = []) {
+  return attachments.map(({ __editKey, ...attachment }) => attachment);
+}
+
+function renderReportEditAttachmentManager() {
+  if (!elements.reportEditAttachments) {
+    return;
+  }
+
+  const attachments = Array.isArray(state.editingReportAttachments) ? state.editingReportAttachments : [];
+  if (!attachments.length) {
+    elements.reportEditAttachments.innerHTML = '<span class="subtle-text">Keine Anhänge vorhanden.</span>';
+    return;
+  }
+
+  elements.reportEditAttachments.innerHTML = attachments.map((attachment, index) => {
+    const url = getAttachmentUrl(attachment);
+    const name = escapeHtml(attachment.name || `Anhang ${index + 1}`);
+    const key = escapeAttribute(attachment.__editKey || buildReportEditAttachmentKey(attachment, index));
+    const link = url && url !== '#'
+      ? `<a href="${escapeAttribute(url)}" target="_blank" rel="noreferrer">${name}</a>`
+      : `<span class="subtle-text">${name} (kein Download-Link)</span>`;
+
+    return `
+      <div class="report-edit-attachment-item">
+        <span>${link}</span>
+        <button class="button button-secondary report-edit-attachment-remove" type="button" data-action="remove-report-attachment" data-attachment-key="${key}">Entfernen</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function handleReportEditAttachmentsClick(event) {
+  const button = event.target.closest('[data-action="remove-report-attachment"]');
+  if (!button || state.isSavingReport) {
+    return;
+  }
+
+  const key = String(button.dataset.attachmentKey || '');
+  state.editingReportAttachments = (state.editingReportAttachments || []).filter((attachment) => attachment.__editKey !== key);
+  renderReportEditAttachmentManager();
+}
+
+function getSelectedReportEditUploadFiles() {
+  return Array.from(elements.reportEditAttachmentUpload?.files || []);
+}
+
+function buildWeeklyReportAttachmentPath({ reportId, file }) {
+  const ownerId = String(state.user?.id || state.currentProfile?.id || 'admin').trim() || 'admin';
+  const normalizedReportId = String(reportId || crypto.randomUUID()).trim();
+  const safeName = String(file?.name || 'anhang')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'anhang';
+  return `${ownerId}/weekly-reports/${normalizedReportId}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+}
+
+async function uploadWeeklyReportAttachments({ reportId, files, report }) {
+  if (!files.length) {
+    return [];
+  }
+
+  if (state.isDemoMode || !state.supabase) {
+    return files.map((file) => ({
+      name: file.name,
+      path: '',
+      publicUrl: '',
+      bucket: STORAGE_BUCKET,
+      mimeType: file.type || 'application/octet-stream',
+      size: file.size || 0,
+      uploadedAt: new Date().toISOString(),
+      commissionNumber: report?.commission_number || elements.editCommissionNumber?.value?.trim() || '',
+    }));
+  }
+
+  const uploadedAttachments = [];
+  for (const file of files) {
+    const path = buildWeeklyReportAttachmentPath({ reportId, file });
+    // eslint-disable-next-line no-await-in-loop
+    const { error } = await state.supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream',
+    });
+    if (error) {
+      if (uploadedAttachments.length) {
+        await deleteWeeklyReportAttachmentsSafely(uploadedAttachments);
+      }
+      throw error;
+    }
+
+    uploadedAttachments.push({
+      name: file.name,
+      path,
+      bucket: STORAGE_BUCKET,
+      mimeType: file.type || 'application/octet-stream',
+      size: file.size || 0,
+      uploadedAt: new Date().toISOString(),
+      commissionNumber: report?.commission_number || elements.editCommissionNumber?.value?.trim() || '',
+    });
+  }
+
+  return uploadedAttachments;
+}
+
+function getRemovedReportAttachments(existingAttachments = [], keptAttachments = []) {
+  const keptKeys = new Set(keptAttachments.map((attachment, index) => attachment.__editKey || buildReportEditAttachmentKey(attachment, index)));
+  return normalizeReportEditAttachments(existingAttachments).filter((attachment) => !keptKeys.has(attachment.__editKey));
 }
 
 function openSpecialReportEditModal(report) {
@@ -1818,25 +1956,52 @@ async function handleReportEditSubmit(event) {
       ...buildAdjustedMinutesUpdatePayload(existingReport, baseAdjustedMinutes),
     };
 
+  const keptAttachments = isSpecialAbsence ? [] : stripReportEditAttachmentKeys(state.editingReportAttachments || []);
+  const removedAttachments = existingReport
+    ? getRemovedReportAttachments(existingReport.attachments, state.editingReportAttachments || [])
+    : [];
+  const uploadFiles = isSpecialAbsence ? [] : getSelectedReportEditUploadFiles();
+  const savedReportId = isCreating ? crypto.randomUUID() : reportId;
+  const reportForAttachmentMetadata = {
+    ...(existingReport || {}),
+    id: savedReportId,
+    ...sharedPayload,
+  };
+  let uploadedAttachments = [];
+
   state.isSavingReport = true;
   try {
+    uploadedAttachments = await uploadWeeklyReportAttachments({
+      reportId: savedReportId,
+      files: uploadFiles,
+      report: reportForAttachmentMetadata,
+    });
+    const payloadWithAttachments = {
+      ...payload,
+      attachments: [...keptAttachments, ...uploadedAttachments],
+    };
+
     if (state.isDemoMode) {
       if (isCreating) {
-        demoWeeklyReports.push({ id: crypto.randomUUID(), ...payload });
+        demoWeeklyReports.push({ id: savedReportId, ...payloadWithAttachments });
       } else {
-        updateDemoReport(reportId, payload);
+        updateDemoReport(reportId, payloadWithAttachments);
       }
     } else if (isCreating) {
-      const { error } = await state.supabase.from('weekly_reports').insert(payload);
+      const { error } = await state.supabase.from('weekly_reports').insert({ id: savedReportId, ...payloadWithAttachments });
       if (error) throw error;
     } else {
-      const { error } = await state.supabase.from('weekly_reports').update(payload).eq('id', reportId);
+      const { error } = await state.supabase.from('weekly_reports').update(payloadWithAttachments).eq('id', reportId);
       if (error) throw error;
     }
 
+    await deleteWeeklyReportAttachmentsSafely(removedAttachments);
     await loadData();
     closeReportEditModal();
   } catch (error) {
+    if (uploadedAttachments.length) {
+      await deleteWeeklyReportAttachmentsSafely(uploadedAttachments);
+    }
     console.error(error);
     alert(`Rapport konnte nicht ${isCreating ? 'erstellt' : 'aktualisiert'} werden: ${error.message}`);
   } finally {

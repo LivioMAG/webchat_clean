@@ -605,9 +605,14 @@
               <span>Bemerkungen</span>
               <textarea id="editNotes" rows="4" placeholder="Bemerkungen zum Rapport"></textarea>
             </label>
-            <div id="reportEditAttachmentsField">
-              <strong>Anhang</strong>
-              <div id="reportEditAttachments" class="attachment-list"></div>
+            <div id="reportEditAttachmentsField" class="report-edit-attachments-field">
+              <strong>Anhänge</strong>
+              <p class="subtle-text">Bestehende Anhänge können entfernt und neue Dateien beim Speichern hochgeladen werden.</p>
+              <div id="reportEditAttachments" class="attachment-list report-edit-attachment-list"></div>
+              <label class="report-edit-upload-label">
+                <span>Neue Anhänge hochladen</span>
+                <input id="reportEditAttachmentUpload" type="file" multiple />
+              </label>
             </div>
             <div class="modal-actions">
               <button class="button button-secondary" type="button" id="cancelReportEditButton">Abbrechen</button>
