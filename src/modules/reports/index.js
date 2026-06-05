@@ -1056,18 +1056,35 @@ function shouldShowConfirmedReportsForCurrentFilter() {
 
 function getCommissionFilterOptions(reports = state.weeklyReports) {
   const includeConfirmedCommissions = isConfirmedCommissionFilterEnabled();
-  const commissionNumbers = new Set();
+  const commissionMap = new Map();
 
   reports.forEach((report) => {
     const commissionNumber = String(report.commission_number || '').trim();
-    if (!commissionNumber || (!includeConfirmedCommissions && String(report.controll || '').trim())) {
+    if (!commissionNumber) {
       return;
     }
 
-    commissionNumbers.add(commissionNumber);
+    const entry = commissionMap.get(commissionNumber) || {
+      value: commissionNumber,
+      label: commissionNumber,
+      totalReports: 0,
+      confirmedReports: 0,
+      isFullyConfirmed: false,
+    };
+    entry.totalReports += 1;
+    if (String(report.controll || '').trim()) {
+      entry.confirmedReports += 1;
+    }
+    commissionMap.set(commissionNumber, entry);
   });
 
-  return [...commissionNumbers].sort();
+  return [...commissionMap.values()]
+    .map((entry) => ({
+      ...entry,
+      isFullyConfirmed: entry.totalReports > 0 && entry.confirmedReports === entry.totalReports,
+    }))
+    .filter((entry) => includeConfirmedCommissions || !entry.isFullyConfirmed)
+    .sort((left, right) => left.label.localeCompare(right.label, 'de'));
 }
 
 function getSortedFilteredReports() {
@@ -2352,8 +2369,8 @@ function openReportsColumnFilter(type) {
     const options = getReportableProfiles().map((p) => ({ value: p.id, label: p.full_name || 'Unbekannt' }));
     content = buildMultiFilterMarkup(type, options, 'Mitarbeiter filtern');
   } else if (type === 'commission') {
-    const values = getCommissionFilterOptions(reports);
-    content = buildMultiFilterMarkup(type, values.map((v) => ({ value: v, label: v })), 'Kommission filtern', { showConfirmedToggle: true });
+    const options = getCommissionFilterOptions(reports);
+    content = buildMultiFilterMarkup(type, options, 'Kommission filtern', { showConfirmedToggle: true });
   } else if (type === 'expenses' || type === 'attachments') {
     const checked = state.reportColumnFilter.type === type;
     const label = type === 'expenses' ? 'Nur Rapporte mit Spesen anzeigen' : 'Nur Rapporte mit Anhängen anzeigen';
@@ -2370,11 +2387,43 @@ function openReportsColumnFilter(type) {
 }
 function buildMultiFilterMarkup(type, options, title, { showConfirmedToggle = false } = {}){
   const includeConfirmedCommissions = isConfirmedCommissionFilterEnabled();
+  const confirmedCommissionsButtonLabel = includeConfirmedCommissions
+    ? 'Bestätigte Kommissionsnummern ausblenden'
+    : 'Bestätigte Kommissionsnummern anzeigen';
   const confirmedCommissionsButton = showConfirmedToggle
-    ? `<button id="toggleConfirmedCommissionsButton" class="button button-secondary report-filter-confirmed-toggle ${includeConfirmedCommissions ? 'is-active' : ''}" type="button" title="Bestätigte Kommissionen anzeigen" aria-label="Bestätigte Kommissionen anzeigen" aria-pressed="${includeConfirmedCommissions ? 'true' : 'false'}">Bestätigte Kommissionen anzeigen</button>`
+    ? `<button id="toggleConfirmedCommissionsButton" class="button button-secondary button-icon-only report-filter-icon-button report-filter-confirmed-toggle ${includeConfirmedCommissions ? 'is-active' : ''}" type="button" title="${confirmedCommissionsButtonLabel}" aria-label="${confirmedCommissionsButtonLabel}" aria-pressed="${includeConfirmedCommissions ? 'true' : 'false'}">${renderIconButtonContent('badge-check', confirmedCommissionsButtonLabel)}</button>`
     : '';
+  const searchPlaceholder = type === 'employee' ? 'Mitarbeiter suchen' : 'Kommission suchen';
 
-  return `<strong class="column-filter-title">${title}</strong><div class="column-filter-toolbar"><label class="column-filter-search-label"><input id="columnFilterSearchInput" type="search" placeholder="Kommission suchen" autocomplete="off" /></label><button id="clearColumnFilterSelectionButton" class="button button-secondary report-filter-icon-button" type="button" title="Alle abwählen" aria-label="Alle abwählen">${renderIconButtonContent('x', 'Alle abwählen')}</button>${confirmedCommissionsButton}</div><div class="column-filter-grid">${options.map((o)=>`<label class="column-filter-chip" data-filter-label="${escapeAttribute(String(o.label || '').toLowerCase())}"><input type="checkbox" value="${escapeAttribute(o.value)}" ${state.reportColumnFilter.type===type&&state.reportColumnFilter.values.includes(o.value)?'checked':''}/><span>${escapeHtml(o.label)}</span></label>`).join('')}</div><div class="column-filter-actions"><button id="confirmColumnFilter" class="button button-primary" type="button">Bestätigen</button></div>`;
+  return `
+    <strong class="column-filter-title">${title}</strong>
+    <div class="column-filter-toolbar">
+      <label class="column-filter-search-label">
+        <input id="columnFilterSearchInput" type="search" placeholder="${searchPlaceholder}" autocomplete="off" />
+      </label>
+      <button id="clearColumnFilterSelectionButton" class="button button-secondary button-icon-only report-filter-icon-button" type="button" title="Alle abwählen" aria-label="Alle abwählen">
+        ${renderIconButtonContent('x', 'Alle abwählen')}
+      </button>
+      ${confirmedCommissionsButton}
+    </div>
+    <div class="column-filter-grid">${options.map((option) => renderColumnFilterChip(type, option)).join('')}</div>
+    <div class="column-filter-actions"><button id="confirmColumnFilter" class="button button-primary" type="button">Bestätigen</button></div>
+  `;
+}
+
+function renderColumnFilterChip(type, option) {
+  const isFullyConfirmed = Boolean(option.isFullyConfirmed);
+  const chipTitle = isFullyConfirmed
+    ? `${option.label} – alle Rapporte bestätigt`
+    : String(option.label || '');
+
+  return `
+    <label class="column-filter-chip ${isFullyConfirmed ? 'is-confirmed-commission' : ''}" data-filter-label="${escapeAttribute(String(option.label || '').toLowerCase())}" title="${escapeAttribute(chipTitle)}">
+      <input type="checkbox" value="${escapeAttribute(option.value)}" ${state.reportColumnFilter.type === type && state.reportColumnFilter.values.includes(option.value) ? 'checked' : ''}/>
+      <span>${escapeHtml(option.label)}</span>
+      ${isFullyConfirmed ? '<span class="column-filter-chip-status" aria-hidden="true">✓</span><span class="visually-hidden">Alle Rapporte bestätigt</span>' : ''}
+    </label>
+  `;
 }
 function handleColumnFilterSearchInput(event) {
   const query = String(event?.target?.value || '').trim().toLowerCase();
