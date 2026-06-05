@@ -137,7 +137,6 @@ function cacheElements() {
   elements.specialReportEditForm = document.getElementById('specialReportEditForm');
   elements.closeSpecialReportEditModalButton = document.getElementById('closeSpecialReportEditModalButton');
   elements.cancelSpecialReportEditButton = document.getElementById('cancelSpecialReportEditButton');
-  elements.specialReportEditContext = document.getElementById('specialReportEditContext');
   elements.specialEditReportId = document.getElementById('specialEditReportId');
   elements.specialEditAbsenceType = document.getElementById('specialEditAbsenceType');
   elements.specialEditTotalMinutes = document.getElementById('specialEditTotalMinutes');
