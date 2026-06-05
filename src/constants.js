@@ -776,6 +776,7 @@ const state = {
   editingReportId: null,
   isCreatingReport: false,
   editingReportPauseMinutes: 0,
+  editingReportAttachments: [],
   isSavingReport: false,
   isDemoMode: false,
   hasAdminAccess: false,
