@@ -24,6 +24,7 @@ async function bootstrapSession() {
 
       if (event === 'SIGNED_OUT') {
         resetAppState();
+        resetEmbeddedChatbot();
         render();
         return;
       }
@@ -42,6 +43,7 @@ async function bootstrapSession() {
 
       if (shouldRefreshUserData || (isSessionRecoveryEvent && currentUserId !== nextUserId)) {
         await loadData();
+        initializeEmbeddedChatbot();
       }
     });
   }

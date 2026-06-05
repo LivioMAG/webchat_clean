@@ -21,6 +21,12 @@ async function initializeSupabase() {
       || config?.missingReportsCallWebhookUrl
       || DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL,
     ).trim() || DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL;
+    state.n8nChatWebhookUrl = String(
+      config?.webhooks?.chatbot
+      || config?.webhooks?.chat
+      || config?.n8nChatWebhookUrl
+      || DEFAULT_N8N_CHAT_WEBHOOK_URL,
+    ).trim();
     state.supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
       auth: {
         persistSession: true,

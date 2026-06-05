@@ -11,6 +11,7 @@ async function init() {
   await initializeSupabase();
   await bootstrapSession();
   render();
+  initializeEmbeddedChatbot();
 }
 
 function populateHolidayImportYearOptions() {
