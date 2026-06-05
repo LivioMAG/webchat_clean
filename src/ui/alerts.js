@@ -13,7 +13,7 @@ function setConnectionBadge(text, warning = false) {
 function showLoginMessage(message, isError = true) {
   elements.loginAlert.classList.remove('hidden');
   elements.loginAlert.textContent = message;
-  elements.loginAlert.style.background = isError ? 'rgba(248, 113, 113, 0.12)' : 'rgba(34, 197, 94, 0.12)';
-  elements.loginAlert.style.borderColor = isError ? 'rgba(248, 113, 113, 0.28)' : 'rgba(34, 197, 94, 0.28)';
-  elements.loginAlert.style.color = isError ? '#fee2e2' : '#dcfce7';
+  elements.loginAlert.style.background = isError ? 'rgba(215, 0, 21, 0.08)' : 'rgba(19, 115, 51, 0.10)';
+  elements.loginAlert.style.borderColor = isError ? 'rgba(215, 0, 21, 0.18)' : 'rgba(19, 115, 51, 0.18)';
+  elements.loginAlert.style.color = isError ? '#7f111c' : '#137333';
 }
