@@ -46,3 +46,13 @@ async function bootstrapSession() {
     });
   }
 }
+
+async function requestLoginMagicLink(email) {
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  return state.supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: redirectTo,
+    },
+  });
+}
