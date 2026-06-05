@@ -1637,6 +1637,31 @@ function renderReportEditAttachmentManager() {
   }).join('');
 }
 
+function settleAttachmentPicker(input, trigger) {
+  window.setTimeout(() => {
+    input?.blur();
+    trigger?.blur();
+  }, 0);
+}
+
+function openAttachmentPicker(input, trigger) {
+  if (!input || state.isSavingReport) {
+    return;
+  }
+
+  const handleWindowFocus = () => settleAttachmentPicker(input, trigger);
+  window.addEventListener('focus', handleWindowFocus, { once: true });
+  input.click();
+}
+
+function openReportEditAttachmentPicker() {
+  openAttachmentPicker(elements.reportEditAttachmentUpload, elements.reportEditAttachmentUploadButton);
+}
+
+function handleReportEditAttachmentPickerSettled() {
+  settleAttachmentPicker(elements.reportEditAttachmentUpload, elements.reportEditAttachmentUploadButton);
+}
+
 function handleReportEditAttachmentsClick(event) {
   const button = event.target.closest('[data-action="remove-report-attachment"]');
   if (!button || state.isSavingReport) {
@@ -1778,6 +1803,14 @@ function renderSpecialReportEditAttachmentManager() {
       </div>
     `;
   }).join('');
+}
+
+function openSpecialReportEditAttachmentPicker() {
+  openAttachmentPicker(elements.specialReportEditAttachmentUpload, elements.specialReportEditAttachmentUploadButton);
+}
+
+function handleSpecialReportEditAttachmentPickerSettled() {
+  settleAttachmentPicker(elements.specialReportEditAttachmentUpload, elements.specialReportEditAttachmentUploadButton);
 }
 
 function handleSpecialReportEditAttachmentsClick(event) {

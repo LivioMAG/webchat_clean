@@ -608,11 +608,11 @@
             <div id="reportEditAttachmentsField" class="report-edit-attachments-field">
               <strong>Anhänge</strong>
               <div id="reportEditAttachments" class="attachment-list report-edit-attachment-list"></div>
-              <label class="report-edit-upload-label report-edit-upload-button" title="Anhänge hinzufügen" aria-label="Anhänge hinzufügen">
+              <button id="reportEditAttachmentUploadButton" class="report-edit-upload-label report-edit-upload-button" type="button" title="Anhänge hinzufügen" aria-label="Anhänge hinzufügen">
                 <i data-lucide="paperclip" aria-hidden="true"></i>
                 <span class="visually-hidden">Anhänge hinzufügen</span>
-                <input id="reportEditAttachmentUpload" type="file" multiple />
-              </label>
+              </button>
+              <input id="reportEditAttachmentUpload" class="visually-hidden" type="file" multiple tabindex="-1" aria-hidden="true" />
             </div>
             <div class="modal-actions">
               <button class="button button-secondary" type="button" id="cancelReportEditButton">Abbrechen</button>
@@ -649,11 +649,11 @@
             <div class="report-edit-attachments-field">
               <strong>Anhänge</strong>
               <div id="specialReportEditAttachments" class="attachment-list report-edit-attachment-list"></div>
-              <label class="report-edit-upload-label report-edit-upload-button" title="Anhänge hinzufügen" aria-label="Anhänge hinzufügen">
+              <button id="specialReportEditAttachmentUploadButton" class="report-edit-upload-label report-edit-upload-button" type="button" title="Anhänge hinzufügen" aria-label="Anhänge hinzufügen">
                 <i data-lucide="paperclip" aria-hidden="true"></i>
                 <span class="visually-hidden">Anhänge hinzufügen</span>
-                <input id="specialReportEditAttachmentUpload" type="file" multiple />
-              </label>
+              </button>
+              <input id="specialReportEditAttachmentUpload" class="visually-hidden" type="file" multiple tabindex="-1" aria-hidden="true" />
             </div>
             <div class="modal-actions">
               <button class="button button-secondary" type="button" id="cancelSpecialReportEditButton">Abbrechen</button>
