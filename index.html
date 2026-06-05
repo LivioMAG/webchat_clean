@@ -49,30 +49,22 @@
   <body>
     <div class="app-shell">
       <section id="loginView" class="login-view view active">
-        <div class="login-card panel">
-          <div class="brand-block">
-            <span class="eyebrow">Neue Webfassung</span>
-            <h1>Wochenrapport-System</h1>
-            <p>
-              Desktop-Plattform für Rapporte, Ferien-/Absenzanträge und den wöchentlichen
-              Gesamtexport als PDF.
-            </p>
+        <div class="login-card panel" aria-labelledby="loginTitle">
+          <div class="login-brand">
+            <img class="login-logo" src="./assets/logo.svg" alt="Maraschow Logo" />
+            <h1 id="loginTitle">Anmelden</h1>
           </div>
 
           <form id="loginForm" class="login-form">
             <label>
               <span>E-Mail</span>
-              <input id="emailInput" type="email" placeholder="admin@maraschow.cn" required />
+              <input id="emailInput" type="email" placeholder="E-Mail-Adresse" autocomplete="email" required />
             </label>
             <label>
               <span>Passwort</span>
-              <input id="passwordInput" type="password" placeholder="••••••••" required />
+              <input id="passwordInput" type="password" placeholder="Passwort" autocomplete="current-password" required />
             </label>
-            <button type="submit" class="button button-primary">Einloggen</button>
-            <p class="helper-text">
-              Vollzugriff gibt es nur für Profile mit <code>is_admin = true</code>. Die passenden
-              Supabase-/Storage-Regeln findest du in <code>supabase/schema.sql</code>.
-            </p>
+            <button type="submit" class="button button-primary login-submit-button">Einloggen</button>
           </form>
 
           <div id="loginAlert" class="alert hidden"></div>
