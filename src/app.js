@@ -131,6 +131,7 @@ function cacheElements() {
   elements.editNotes = document.getElementById('editNotes');
   elements.reportEditAttachmentsField = document.getElementById('reportEditAttachmentsField');
   elements.reportEditAttachments = document.getElementById('reportEditAttachments');
+  elements.reportEditAttachmentUploadButton = document.getElementById('reportEditAttachmentUploadButton');
   elements.reportEditAttachmentUpload = document.getElementById('reportEditAttachmentUpload');
   elements.saveReportEditButton = document.getElementById('saveReportEditButton');
   elements.specialReportEditModal = document.getElementById('specialReportEditModal');
@@ -142,6 +143,7 @@ function cacheElements() {
   elements.specialEditTotalMinutes = document.getElementById('specialEditTotalMinutes');
   elements.specialEditExpensesAmount = document.getElementById('specialEditExpensesAmount');
   elements.specialReportEditAttachments = document.getElementById('specialReportEditAttachments');
+  elements.specialReportEditAttachmentUploadButton = document.getElementById('specialReportEditAttachmentUploadButton');
   elements.specialReportEditAttachmentUpload = document.getElementById('specialReportEditAttachmentUpload');
   elements.adjustedMinutesModal = document.getElementById('adjustedMinutesModal');
   elements.adjustedMinutesForm = document.getElementById('adjustedMinutesForm');
@@ -324,11 +326,17 @@ function bindEvents() {
   elements.cancelReportEditButton.addEventListener('click', closeReportEditModal);
   elements.reportEditForm.addEventListener('submit', handleReportEditSubmit);
   elements.reportEditAttachments?.addEventListener('click', handleReportEditAttachmentsClick);
+  elements.reportEditAttachmentUploadButton?.addEventListener('click', openReportEditAttachmentPicker);
+  elements.reportEditAttachmentUpload?.addEventListener('change', handleReportEditAttachmentPickerSettled);
+  elements.reportEditAttachmentUpload?.addEventListener('cancel', handleReportEditAttachmentPickerSettled);
   elements.createReportTypeSelect?.addEventListener('change', handleCreateReportTypeChange);
   elements.closeSpecialReportEditModalButton.addEventListener('click', closeSpecialReportEditModal);
   elements.cancelSpecialReportEditButton.addEventListener('click', closeSpecialReportEditModal);
   elements.specialReportEditForm.addEventListener('submit', handleSpecialReportEditSubmit);
   elements.specialReportEditAttachments?.addEventListener('click', handleSpecialReportEditAttachmentsClick);
+  elements.specialReportEditAttachmentUploadButton?.addEventListener('click', openSpecialReportEditAttachmentPicker);
+  elements.specialReportEditAttachmentUpload?.addEventListener('change', handleSpecialReportEditAttachmentPickerSettled);
+  elements.specialReportEditAttachmentUpload?.addEventListener('cancel', handleSpecialReportEditAttachmentPickerSettled);
   elements.editStartTime.addEventListener('change', syncEditedWorkMinutesWithTimeRange);
   elements.editEndTime.addEventListener('change', syncEditedWorkMinutesWithTimeRange);
   elements.editStartTime.addEventListener('input', syncEditedWorkMinutesWithTimeRange);
