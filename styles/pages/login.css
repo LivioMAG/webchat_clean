@@ -127,12 +127,6 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(215, 0, 21, 0.1);
 }
 
-.login-submit-button {
-  width: 100%;
-  margin-top: 4px;
-  border-radius: 10px;
-  padding: 12px 18px;
-}
 
 .login-card .alert {
   margin-top: 18px;
@@ -154,4 +148,39 @@ textarea:focus {
     gap: 18px;
     margin-bottom: 24px;
   }
+}
+
+.login-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.login-submit-button,
+.login-forgot-button {
+  width: 100%;
+  margin-top: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  box-shadow: none;
+}
+
+.login-submit-button {
+  color: #ffffff;
+  border-color: #1f2937;
+  background: #1f2937;
+}
+
+.login-submit-button:hover {
+  background: #111827;
+}
+
+.login-forgot-button {
+  color: var(--text);
+  border-color: rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+}
+
+.login-forgot-button:hover {
+  background: #f7f7f5;
 }

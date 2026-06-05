@@ -33,6 +33,7 @@ function cacheElements() {
   elements.loginForm = document.getElementById('loginForm');
   elements.emailInput = document.getElementById('emailInput');
   elements.passwordInput = document.getElementById('passwordInput');
+  elements.forgotPasswordButton = document.getElementById('forgotPasswordButton');
   elements.loginAlert = document.getElementById('loginAlert');
   elements.userName = document.getElementById('userName');
   elements.userRole = document.getElementById('userRole');
@@ -236,6 +237,7 @@ function cacheElements() {
 
 function bindEvents() {
   elements.loginForm.addEventListener('submit', handleLogin);
+  elements.forgotPasswordButton?.addEventListener('click', handleForgotPassword);
   elements.logoutButton.addEventListener('click', handleLogout);
   elements.accessDeniedLogoutButton.addEventListener('click', handleLogout);
   elements.weekPicker.addEventListener('change', async (event) => {

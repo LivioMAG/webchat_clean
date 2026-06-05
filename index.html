@@ -64,7 +64,10 @@
               <span>Passwort</span>
               <input id="passwordInput" type="password" placeholder="Passwort" autocomplete="current-password" required />
             </label>
-            <button type="submit" class="button button-primary login-submit-button">Einloggen</button>
+            <div class="login-actions">
+              <button type="submit" class="button login-submit-button">Einloggen</button>
+              <button id="forgotPasswordButton" type="button" class="button login-forgot-button">Passwort vergessen</button>
+            </div>
           </form>
 
           <div id="loginAlert" class="alert hidden"></div>

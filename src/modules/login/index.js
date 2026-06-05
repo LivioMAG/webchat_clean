@@ -30,6 +30,43 @@ async function handleLogin(event) {
   render();
 }
 
+async function handleForgotPassword() {
+  const email = elements.emailInput.value.trim().toLowerCase();
+
+  if (!email) {
+    showLoginMessage('Bitte gib zuerst deine E-Mail-Adresse ein.');
+    elements.emailInput.focus();
+    return;
+  }
+
+  if (!elements.emailInput.checkValidity()) {
+    showLoginMessage('Bitte gib eine gültige E-Mail-Adresse ein.');
+    elements.emailInput.reportValidity();
+    return;
+  }
+
+  if (state.isDemoMode) {
+    showLoginMessage('Im Demo-Modus wird kein Magic Link versendet.', false);
+    return;
+  }
+
+  elements.forgotPasswordButton.disabled = true;
+  showLoginMessage('Magic Link wird versendet …', false);
+
+  try {
+    const { error } = await requestLoginMagicLink(email);
+
+    if (error) {
+      showLoginMessage(error.message);
+      return;
+    }
+
+    showLoginMessage('Magic Link wurde versendet. Bitte prüfe dein E-Mail-Postfach.', false);
+  } finally {
+    elements.forgotPasswordButton.disabled = false;
+  }
+}
+
 async function handleLogout() {
   if (state.isDemoMode) {
     resetAppState();
