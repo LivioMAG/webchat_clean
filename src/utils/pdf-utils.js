@@ -1,3 +1,5 @@
+const PDF_REMARK_TEXT_LIMIT = 80;
+
 async function exportWeekPdf() {
   await exportWeekPdfInternal({ includeVisumStamp: false });
 }
@@ -749,6 +751,7 @@ function buildWeeklyMatrixRows(reports) {
         expenses: 0,
         lunchExpenses: new Map(),
         otherCosts: 0,
+        expenseNotes: [],
         notes: [],
       });
     }
@@ -781,14 +784,31 @@ function buildWeeklyMatrixRows(reports) {
   groups.forEach((row) => {
     const lunchExpenseRemark = buildLunchExpenseRemark(row.lunchExpenses);
     if (lunchExpenseRemark) {
-      row.notes.push(lunchExpenseRemark);
+      row.expenseNotes.push(lunchExpenseRemark);
     }
     if (row.otherCosts > 0) {
-      row.notes.push(`Sonstige Auslagen: ${formatCurrency(row.otherCosts)}`);
+      row.expenseNotes.push(`Sonstige Auslagen: ${formatCurrency(row.otherCosts)}`);
     }
+    row.notes = buildPdfRemarkCell(row.expenseNotes, row.notes);
   });
 
   return [...groups.values()];
+}
+
+function buildPdfRemarkCell(expenseNotes = [], remarks = []) {
+  return [
+    ...dedupeStrings(expenseNotes),
+    ...dedupeStrings(remarks).map((remark) => truncatePdfRemark(remark)),
+  ].filter(Boolean);
+}
+
+function truncatePdfRemark(value, maxLength = PDF_REMARK_TEXT_LIMIT) {
+  const text = String(value || '').trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength).trimEnd()}...`;
 }
 
 function buildLunchExpenseRemark(lunchExpenses) {
@@ -840,7 +860,7 @@ function buildAbsenceMatrixRows(reports) {
     const commissionNumber = String(report.commission_number || '').trim();
     if (projectName) row.notes.push(projectName);
     if (!projectName && commissionNumber) row.notes.push(commissionNumber);
-    if (report.notes) row.notes.push(report.notes);
+    if (report.notes) row.notes.push(truncatePdfRemark(report.notes));
   });
 
   const normalizedRows = rows.map((row) => ({
