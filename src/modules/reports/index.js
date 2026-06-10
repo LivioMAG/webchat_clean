@@ -1059,19 +1059,50 @@ function getEmployeeFilterOptions(reports = state.weeklyReports) {
 
   return getReportableProfiles()
     .map((profile) => {
-      const profileReports = reportGroups.get(profile.id) ?? [];
-      const totalReports = profileReports.length;
-      const confirmedReports = profileReports.filter((report) => String(report.controll || '').trim()).length;
+      const profileReports = getReportsForProfile(reportGroups, profile.id);
+      const status = getReportConfirmationStatus(profileReports);
 
       return {
         value: profile.id,
         label: profile.full_name || 'Unbekannt',
-        totalReports,
-        confirmedReports,
-        isFullyConfirmed: totalReports > 0 && confirmedReports === totalReports,
+        totalReports: status.totalReports,
+        confirmedReports: status.confirmedReports,
+        isFullyConfirmed: status.isFullyConfirmed,
+        statusClass: status.isFullyConfirmed ? 'is-confirmed-employee' : 'is-pending-employee',
+        statusLabel: status.isFullyConfirmed ? 'Alle Rapporte bestätigt' : 'Offene oder fehlende Rapporte',
       };
     })
     .sort((left, right) => left.label.localeCompare(right.label, 'de'));
+}
+
+function getReportsForProfile(reportGroups, profileId) {
+  if (reportGroups.has(profileId)) {
+    return reportGroups.get(profileId);
+  }
+
+  const normalizedProfileId = String(profileId);
+  if (reportGroups.has(normalizedProfileId)) {
+    return reportGroups.get(normalizedProfileId);
+  }
+
+  for (const [groupProfileId, reports] of reportGroups.entries()) {
+    if (String(groupProfileId) === normalizedProfileId) {
+      return reports;
+    }
+  }
+
+  return [];
+}
+
+function getReportConfirmationStatus(reports = []) {
+  const totalReports = reports.length;
+  const confirmedReports = reports.filter((report) => String(report.controll || '').trim()).length;
+
+  return {
+    totalReports,
+    confirmedReports,
+    isFullyConfirmed: totalReports > 0 && confirmedReports === totalReports,
+  };
 }
 
 function getCommissionFilterOptions(reports = state.weeklyReports) {
@@ -2673,6 +2704,11 @@ function openReportsColumnFilter(type) {
   document.getElementById('columnFilterSearchInput')?.addEventListener('input', handleColumnFilterSearchInput);
   document.getElementById('clearColumnFilterSelectionButton')?.addEventListener('click', clearColumnFilterSelection);
   document.getElementById('toggleConfirmedCommissionsButton')?.addEventListener('click', toggleConfirmedCommissionFilterOptions);
+  elements.reportsColumnFilterPopover.querySelectorAll('.column-filter-chip input[type="checkbox"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      checkbox.closest('.column-filter-chip')?.classList.toggle('is-selected', checkbox.checked);
+    });
+  });
   renderLucideIcons();
 }
 function buildMultiFilterMarkup(type, options, title, { showConfirmedToggle = false } = {}){
@@ -2704,18 +2740,25 @@ function buildMultiFilterMarkup(type, options, title, { showConfirmedToggle = fa
 function renderColumnFilterChip(type, option) {
   const isFullyConfirmed = Boolean(option.isFullyConfirmed);
   const isEmployeeFilter = type === 'employee';
+  const selectedValues = Array.isArray(state.reportColumnFilter.values) ? state.reportColumnFilter.values.map((value) => String(value)) : [];
+  const isChecked = state.reportColumnFilter.type === type && selectedValues.includes(String(option.value));
   const chipStatusClass = [
     isFullyConfirmed ? 'is-confirmed-commission' : '',
-    isEmployeeFilter && isFullyConfirmed ? 'is-confirmed-employee' : '',
-    isEmployeeFilter && !isFullyConfirmed ? 'is-pending-employee' : '',
+    option.statusClass || '',
+    isEmployeeFilter ? 'has-employee-status' : '',
+    isChecked ? 'is-selected' : '',
   ].filter(Boolean).join(' ');
-  const chipTitle = isFullyConfirmed
-    ? `${option.label} – alle Rapporte bestätigt`
-    : String(option.label || '');
+  const reportCountLabel = isEmployeeFilter
+    ? `${Number(option.confirmedReports || 0)} von ${Number(option.totalReports || 0)} Rapporten bestätigt`
+    : '';
+  const statusLabel = option.statusLabel || (isFullyConfirmed ? 'Alle Rapporte bestätigt' : 'Nicht vollständig bestätigt');
+  const chipTitle = isEmployeeFilter
+    ? `${option.label} – ${statusLabel}; ${reportCountLabel}`
+    : (isFullyConfirmed ? `${option.label} – alle Rapporte bestätigt` : String(option.label || ''));
 
   return `
-    <label class="column-filter-chip ${chipStatusClass}" data-filter-label="${escapeAttribute(String(option.label || '').toLowerCase())}" title="${escapeAttribute(chipTitle)}">
-      <input type="checkbox" value="${escapeAttribute(option.value)}" ${state.reportColumnFilter.type === type && state.reportColumnFilter.values.includes(option.value) ? 'checked' : ''}/>
+    <label class="column-filter-chip ${chipStatusClass}" data-filter-label="${escapeAttribute(String(option.label || '').toLowerCase())}" data-status="${escapeAttribute(isFullyConfirmed ? 'confirmed' : 'pending')}" title="${escapeAttribute(chipTitle)}">
+      <input type="checkbox" value="${escapeAttribute(option.value)}" ${isChecked ? 'checked' : ''}/>
       <span>${escapeHtml(option.label)}</span>
       ${isFullyConfirmed ? '<span class="column-filter-chip-status" aria-hidden="true">✓</span><span class="visually-hidden">Alle Rapporte bestätigt</span>' : ''}
     </label>
@@ -2733,6 +2776,7 @@ function clearColumnFilterSelection() {
   const checkboxes = elements.reportsColumnFilterPopover?.querySelectorAll('.column-filter-chip input[type="checkbox"]') || [];
   checkboxes.forEach((checkbox) => {
     checkbox.checked = false;
+    checkbox.closest('.column-filter-chip')?.classList.remove('is-selected');
   });
 }
 
