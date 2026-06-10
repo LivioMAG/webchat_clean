@@ -204,27 +204,31 @@
 .column-filter-grid > .column-filter-chip.is-pending-employee,
 .column-filter-grid > .column-filter-chip[data-status='pending'].has-employee-status {
   border-color: rgba(17, 24, 39, 0.2);
-  background: linear-gradient(135deg, #111827, #2f3746 64%, #404a5d);
-  color: #f9fafb;
-  box-shadow: 0 3px 10px rgba(17, 24, 39, 0.16);
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.08);
 }
 
 .column-filter-chip.is-confirmed-commission:has(input:checked),
-.column-filter-chip.is-confirmed-employee:has(input:checked),
-.column-filter-chip.is-confirmed-commission.is-selected,
-.column-filter-chip.is-confirmed-employee.is-selected {
+.column-filter-chip.is-confirmed-commission.is-selected {
   border-color: #15803d;
   background: #15803d;
   color: #fff;
   box-shadow: 0 4px 14px rgba(21, 128, 61, 0.28);
 }
 
+.column-filter-chip.is-confirmed-employee:has(input:checked),
+.column-filter-chip.is-confirmed-employee.is-selected,
 .column-filter-chip.is-pending-employee:has(input:checked),
-.column-filter-chip.is-pending-employee.is-selected {
-  border-color: #111827;
-  background: linear-gradient(135deg, #020617, #1f2937 68%);
+.column-filter-chip.is-pending-employee.is-selected,
+.column-filter-chip[data-status='confirmed'].has-employee-status:has(input:checked),
+.column-filter-chip[data-status='confirmed'].has-employee-status.is-selected,
+.column-filter-chip[data-status='pending'].has-employee-status:has(input:checked),
+.column-filter-chip[data-status='pending'].has-employee-status.is-selected {
+  border-color: #111;
+  background: #111;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.26);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .column-filter-chip-status {
