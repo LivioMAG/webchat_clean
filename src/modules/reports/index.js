@@ -226,10 +226,11 @@ function renderSubmissionLists() {
       <li class="align-start">
         <div class="status-stack">
           <strong>${escapeHtml(summary.profile.full_name)}</strong>
-          <div class="subtle-text">${summary.entryCount} Rapporteinträge in dieser Woche</div>
+          <div class="subtle-text">${summary.entryCount} Rapporteinträge in dieser Woche · ${escapeHtml(summary.reportedWeekdayLabel)} rapportiert</div>
         </div>
         <div class="status-meta">
           <span class="pill ${statusClass}">${escapeHtml(statusLabel)}</span>
+          <strong>${escapeHtml(summary.reportedWeekdayLabel)}</strong>
           <strong>${formatMinutes(summary.totalMinutes)}</strong>
         </div>
       </li>
@@ -256,6 +257,7 @@ function renderSubmissionLists() {
         </div>
         <div class="status-meta">
           <span class="pill warning">${escapeHtml(entry.statusLabel)}</span>
+          <strong>${escapeHtml(entry.reportedWeekdayLabel)}</strong>
           <strong>${formatMinutes(entry.totalMinutes)}</strong>
         </div>
       </li>
@@ -263,7 +265,7 @@ function renderSubmissionLists() {
     );
 
   elements.submissionList.innerHTML = submittedItems.join('') || '<li>In dieser Woche wurde noch kein Rapport erfasst.</li>';
-  elements.missingList.innerHTML = missingItems.join('') || '<li>Alle Profile haben abgegeben.</li>';
+  elements.missingList.innerHTML = missingItems.join('') || '<li>Alle Profile haben vollständig rapportiert.</li>';
   if (elements.openMissingReportsCallModalButton) {
     elements.openMissingReportsCallModalButton.disabled = !missingItems.length;
   }
@@ -1255,12 +1257,15 @@ function getProfileSubmissionSummary() {
   return getReportableProfiles().map((profile) => {
     const reports = groups.get(profile.id) ?? [];
     const totalMinutes = reports.reduce((sum, report) => sum + getAdjustedWorkMinutes(report), 0);
+    const reportedWeekdayCount = getReportedWeekdayCount(reports);
     const hasPendingControll = reports.some((report) => !String(report.controll || '').trim());
     return {
       profile,
       reports,
       entryCount: reports.length,
       totalMinutes,
+      reportedWeekdayCount,
+      reportedWeekdayLabel: formatReportedWeekdayCount(reportedWeekdayCount),
       hasSubmission: reports.length > 0,
       hasPendingControll,
     };

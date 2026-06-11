@@ -105,11 +105,12 @@ async function exportWeekPdfInternal({ includeVisumStamp = false } = {}) {
       entry.profile.full_name,
       entry.profile.email,
       entry.statusLabel,
+      entry.reportedWeekdayLabel,
     ]);
     pdf.autoTable({
       startY: 30,
-      head: [['Mitarbeiter', 'E-Mail', 'Status']],
-      body: missingRows.length ? missingRows : [['Alle Mitarbeiter haben vollständig abgegeben.', '', '']],
+      head: [['Mitarbeiter', 'E-Mail', 'Status', 'Rapportierte Tage']],
+      body: missingRows.length ? missingRows : [['Alle Mitarbeiter haben vollständig rapportiert.', '', '', '']],
       styles: { fontSize: 9, cellPadding: 3, lineColor: [0, 0, 0], lineWidth: 0.2 },
       headStyles: { fillColor: [22, 163, 74], textColor: [255, 255, 255] },
     });
