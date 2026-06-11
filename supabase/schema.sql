@@ -616,6 +616,15 @@ begin
     return new;
   end if;
 
+  if not public.report_is_confirmed(new.controll) then
+    v_old_payload := to_jsonb(old) - 'updated_at' - 'controll';
+    v_new_payload := to_jsonb(new) - 'updated_at' - 'controll';
+
+    if v_old_payload = v_new_payload then
+      return new;
+    end if;
+  end if;
+
   raise exception 'Bestätigte Wochenrapporte sind gesperrt und dürfen nicht mehr bearbeitet werden.';
 end;
 $$;
