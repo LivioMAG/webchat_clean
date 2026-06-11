@@ -1305,6 +1305,8 @@ function handleReportsTableClick(event) {
   }
 
   if (trigger.dataset.action === 'confirm-report') {
+    event.preventDefault();
+    event.stopPropagation();
     handleToggleReportConfirmation(reportId);
     return;
   }
@@ -2668,7 +2670,7 @@ function renderControllCell(report) {
 
   return `
     <label class="control-checkbox-button ${isControlled ? 'is-controlled' : ''}" data-action="confirm-report" data-report-id="${escapeAttribute(report.id)}" title="${escapeAttribute(titleText)}">
-      <input type="checkbox" ${isControlled ? 'checked' : ''} ${state.isSavingReport ? 'disabled' : ''} aria-label="${escapeAttribute(ariaLabel)}" />
+      <input type="checkbox" ${isControlled ? 'checked' : ''} aria-label="${escapeAttribute(ariaLabel)}" />
     </label>
   `;
 }
