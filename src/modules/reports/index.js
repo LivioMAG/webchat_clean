@@ -1467,6 +1467,7 @@ async function handleBulkConfirmSubmit() {
 }
 
 const EDITABLE_SPECIAL_ABSENCE_TYPE_CODES = new Set([1, 2, 3, 4, 6, 7]);
+const CREATE_REPORT_SPECIAL_ABSENCE_TYPE_CODES = new Set([1, 2, 3, 4, 5, 6, 7, 9]);
 
 function isEditableSpecialAbsenceReport(report) {
   return EDITABLE_SPECIAL_ABSENCE_TYPE_CODES.has(Number(report?.abz_typ));
@@ -1477,8 +1478,16 @@ function getEditableSpecialAbsenceOptions() {
 }
 
 function getEditableSpecialAbsenceLabel(typeCode) {
-  const option = getEditableSpecialAbsenceOptions().find((item) => Number(item.typeCode) === Number(typeCode));
+  const option = ABSENCE_CATEGORY_CONFIG.find((item) => Number(item.typeCode) === Number(typeCode));
   return option?.label || 'Absenz';
+}
+
+function getCreateReportSpecialAbsenceOptions() {
+  return ABSENCE_CATEGORY_CONFIG.filter((item) => CREATE_REPORT_SPECIAL_ABSENCE_TYPE_CODES.has(Number(item.typeCode)));
+}
+
+function isCreateReportHolidayType(typeCode) {
+  return HOLIDAY_TYPE_CODES.has(Number(typeCode));
 }
 
 function renderSpecialReportEditAbsenceTypeOptions(selectedTypeCode) {
@@ -1530,7 +1539,7 @@ function renderCreateReportTypeOptions(selectedTypeCode = 0) {
   if (!elements.createReportTypeSelect) return;
   const options = [
     { typeCode: 0, label: 'Normaler Rapport' },
-    ...getEditableSpecialAbsenceOptions(),
+    ...getCreateReportSpecialAbsenceOptions(),
   ];
   elements.createReportTypeSelect.innerHTML = options
     .map((option) => `<option value="${escapeAttribute(option.typeCode)}" ${Number(option.typeCode) === Number(selectedTypeCode) ? 'selected' : ''}>${escapeHtml(option.label)}</option>`)
@@ -2120,6 +2129,7 @@ async function handleReportEditSubmit(event) {
   const workDate = elements.editWorkDate.value;
   const selectedReportTypeCode = isCreating ? getSelectedCreateReportTypeCode() : Number(existingReport.abz_typ || 0);
   const isSpecialAbsence = isCreating && selectedReportTypeCode !== 0;
+  const isHolidayCreation = isCreating && isCreateReportHolidayType(selectedReportTypeCode);
   const selectedReportTypeLabel = isSpecialAbsence ? getEditableSpecialAbsenceLabel(selectedReportTypeCode) : '';
   const commissionNumber = isSpecialAbsence ? selectedReportTypeLabel : elements.editCommissionNumber.value.trim();
   if (isCreating && !selectedProfileId) {
@@ -2132,6 +2142,22 @@ async function handleReportEditSubmit(event) {
   }
   if (!commissionNumber) {
     alert('Bitte eine Kommission erfassen.');
+    return;
+  }
+
+  if (isHolidayCreation) {
+    state.isSavingReport = true;
+    try {
+      await createPlatformHoliday(workDate, selectedReportTypeLabel, selectedReportTypeCode === PAID_HOLIDAY_TYPE_CODE);
+      await loadData();
+      closeReportEditModal();
+    } catch (error) {
+      console.error(error);
+      alert(`Feiertag konnte nicht erstellt werden: ${error.message}`);
+    } finally {
+      state.isSavingReport = false;
+      render();
+    }
     return;
   }
 
