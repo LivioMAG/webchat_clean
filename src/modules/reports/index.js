@@ -188,8 +188,12 @@ function renderReportsTable() {
   elements.reportsTableBody.innerHTML = pagination.pageItems
     .map((report) => {
       const profile = getProfileById(report.profile_id);
+      const isControlled = isReportControlled(report);
+      const rowClasses = `report-row ${isControlled ? 'report-row-locked' : 'report-row-clickable'}`;
+      const rowAction = isControlled ? '' : ' data-action="open-report-edit"';
+      const rowTitle = isControlled ? ' title="Kontrollierte Rapporte können nicht bearbeitet werden"' : '';
       return `
-        <tr class="report-row report-row-clickable" data-action="open-report-edit" data-report-id="${escapeAttribute(report.id)}">
+        <tr class="${rowClasses}"${rowAction} data-report-id="${escapeAttribute(report.id)}"${rowTitle}>
           <td>${escapeHtml(profile?.full_name ?? 'Unbekannt')}</td>
           <td>${renderControllCell(report)}</td>
           <td>${formatDateWithWeekday(report.work_date)}</td>
@@ -1094,9 +1098,13 @@ function getReportsForProfile(reportGroups, profileId) {
   return [];
 }
 
+function isReportControlled(report) {
+  return Boolean(String(report?.controll || '').trim());
+}
+
 function getReportConfirmationStatus(reports = []) {
   const totalReports = reports.length;
-  const confirmedReports = reports.filter((report) => String(report.controll || '').trim()).length;
+  const confirmedReports = reports.filter((report) => isReportControlled(report)).length;
 
   return {
     totalReports,
@@ -1284,7 +1292,10 @@ function handleReportsTableClick(event) {
   }
 
   if (trigger.dataset.action === 'edit-report' || trigger.dataset.action === 'open-report-edit') {
-    openReportEditModal(reportId);
+    const report = state.weeklyReports.find((item) => String(item.id) === String(reportId));
+    if (!isReportControlled(report)) {
+      openReportEditModal(reportId);
+    }
     return;
   }
 
@@ -1621,7 +1632,7 @@ function openReportCreateModal() {
 
 function openReportEditModal(reportId) {
   const report = state.weeklyReports.find((item) => String(item.id) === String(reportId));
-  if (!report) {
+  if (!report || isReportControlled(report)) {
     return;
   }
 
