@@ -42,7 +42,7 @@
 }
 
 .control-checkbox-button.is-controlled {
-  cursor: default;
+  cursor: pointer;
 }
 
 .control-checkbox-button.is-controlled input[type='checkbox'] {

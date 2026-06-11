@@ -1294,7 +1294,7 @@ function handleReportsTableClick(event) {
   }
 
   if (trigger.dataset.action === 'confirm-report') {
-    handleConfirmReport(reportId);
+    handleToggleReportConfirmation(reportId);
     return;
   }
 
@@ -1303,13 +1303,27 @@ function handleReportsTableClick(event) {
   }
 }
 
-async function handleConfirmReport(reportId) {
+async function handleToggleReportConfirmation(reportId) {
   if (!reportId || state.isSavingReport) {
     return;
   }
 
   const report = state.weeklyReports.find((item) => String(item.id) === String(reportId));
-  if (!report || String(report.controll || '').trim()) {
+  if (!report) {
+    return;
+  }
+
+  const isConfirmed = Boolean(String(report.controll || '').trim());
+  if (isConfirmed) {
+    await handleUnconfirmReport(reportId, report);
+    return;
+  }
+
+  await handleConfirmReport(reportId, report);
+}
+
+async function handleConfirmReport(reportId, report = state.weeklyReports.find((item) => String(item.id) === String(reportId))) {
+  if (!reportId || state.isSavingReport || !report || String(report.controll || '').trim()) {
     return;
   }
 
@@ -1325,11 +1339,35 @@ async function handleConfirmReport(reportId) {
   renderReportsTable();
 
   try {
-    await confirmReportUsingSingleConfirmationLogic(reportId, controllName);
+    await updateReportControll(reportId, controllName);
   } catch (error) {
     report.controll = previousControll;
     console.error(error);
     alert(`Kontrolle konnte nicht gespeichert werden: ${error.message}`);
+  } finally {
+    state.isSavingReport = false;
+    renderReportsTable();
+  }
+}
+
+async function handleUnconfirmReport(reportId, report) {
+  const shouldUnconfirm = window.confirm('Möchten Sie die Bestätigung aufheben?');
+  if (!shouldUnconfirm) {
+    renderReportsTable();
+    return;
+  }
+
+  const previousControll = report.controll;
+  report.controll = '';
+  state.isSavingReport = true;
+  renderReportsTable();
+
+  try {
+    await updateReportControll(reportId, '');
+  } catch (error) {
+    report.controll = previousControll;
+    console.error(error);
+    alert(`Bestätigung konnte nicht aufgehoben werden: ${error.message}`);
   } finally {
     state.isSavingReport = false;
     renderReportsTable();
@@ -1341,14 +1379,18 @@ async function confirmReportUsingSingleConfirmationLogic(reportId, controllName 
     throw new Error('Der Name für die Kontrolle konnte nicht ermittelt werden.');
   }
 
+  await updateReportControll(reportId, controllName);
+}
+
+async function updateReportControll(reportId, controllValue) {
   if (state.isDemoMode) {
-    updateDemoReport(reportId, { controll: controllName });
+    updateDemoReport(reportId, { controll: controllValue });
     return;
   }
 
   const { error } = await state.supabase
     .from('weekly_reports')
-    .update({ controll: controllName })
+    .update({ controll: controllValue })
     .eq('id', reportId);
   if (error) throw error;
 }
@@ -2615,7 +2657,7 @@ function renderControllCell(report) {
 
   return `
     <label class="control-checkbox-button ${isControlled ? 'is-controlled' : ''}" data-action="confirm-report" data-report-id="${escapeAttribute(report.id)}" title="${escapeAttribute(titleText)}">
-      <input type="checkbox" ${isControlled ? 'checked' : ''} ${state.isSavingReport || isControlled ? 'disabled' : ''} aria-label="${escapeAttribute(ariaLabel)}" />
+      <input type="checkbox" ${isControlled ? 'checked' : ''} ${state.isSavingReport ? 'disabled' : ''} aria-label="${escapeAttribute(ariaLabel)}" />
     </label>
   `;
 }
