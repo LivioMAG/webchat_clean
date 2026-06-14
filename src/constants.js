@@ -7,6 +7,9 @@ const DISPO_ITEMS_LEGACY_PREFIX = '__dispo_items__:';
 const DISPO_DEFAULT_START_TIME = '07:00';
 const DISPO_DEFAULT_END_TIME = '16:30';
 const DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL = 'https://n8n.voltlog.cloud/webhook/voice-agent-retell';
+const DEFAULT_N8N_CHAT_WEBHOOK_URL = '';
+const N8N_CHAT_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+const N8N_CHAT_STYLESHEET_URL = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css';
 const APP_ROLE_OPTIONS = ['Lehrling', 'Elektroinstallateur', 'Bauleiter', 'Projektleiter', 'Service', 'Temporär'];
 const SCHOOL_DAY_OPTIONS = [
   { value: 1, label: 'Montag' },
@@ -721,6 +724,9 @@ const state = {
   supabase: null,
   supabaseAnonKey: '',
   missingReportsCallWebhookUrl: DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL,
+  n8nChatWebhookUrl: DEFAULT_N8N_CHAT_WEBHOOK_URL,
+  n8nChatInitialized: false,
+  n8nChatMetadataSignature: '',
   session: null,
   user: null,
   currentProfile: null,

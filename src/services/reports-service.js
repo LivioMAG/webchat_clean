@@ -118,6 +118,7 @@ function resetAppState() {
   state.requestHistory = [];
   state.platformHolidays = [];
   state.schoolVacations = [];
+  resetEmbeddedChatbot();
   state.projectSearchQuery = '';
   state.editingProjectId = null;
   state.showControlledReports = false;
@@ -165,6 +166,7 @@ function resetAppState() {
 async function loadData() {
   if (!state.user) {
     render();
+    initializeEmbeddedChatbot();
     return;
   }
 
@@ -213,6 +215,7 @@ async function loadData() {
       state.dataTimestampText = 'Kein Zugriff – is_admin ist für dieses Profil nicht aktiviert';
       finishDataLoad(requestId);
       render();
+      initializeEmbeddedChatbot();
       if (state.pendingDataReload) {
         state.pendingDataReload = false;
         loadData().catch((error) => {
@@ -304,6 +307,7 @@ async function loadData() {
     state.dataTimestampText = `Letzte Aktualisierung: ${new Date().toLocaleString('de-CH')}`;
     finishDataLoad(requestId);
     render();
+    initializeEmbeddedChatbot();
     if (state.pendingDataReload) {
       state.pendingDataReload = false;
       loadData().catch((error) => {

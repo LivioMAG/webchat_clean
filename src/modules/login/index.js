@@ -12,6 +12,7 @@ async function handleLogin(event) {
     await loadDemoData();
     showLoginMessage('Demo-Login erfolgreich.', false);
     render();
+    initializeEmbeddedChatbot();
     return;
   }
 
@@ -28,6 +29,7 @@ async function handleLogin(event) {
   await loadData();
   showLoginMessage('Login erfolgreich.', false);
   render();
+  initializeEmbeddedChatbot();
 }
 
 async function handleForgotPassword() {
