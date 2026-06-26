@@ -486,7 +486,7 @@ function buildWeeklyReportLayout(reports) {
       return summary;
     },
     {
-      dailyMinutes: Array(6).fill(0),
+      dailyMinutes: Array(7).fill(0),
       totalMinutes: 0,
       expenses: 0,
     },
@@ -530,14 +530,14 @@ function drawWeeklyReportPage(pdf, { profile, weekRange, calendarWeek, layout })
       ])
     : [];
   while (regularBody.length < 10) {
-    regularBody.push(['', '', '', '', '', '', '', '', '', '', '']);
+    regularBody.push(['', '', '', '', '', '', '', '', '', '', '', '']);
   }
 
   pdf.autoTable({
     startY: mainTableY,
     margin: { left: marginLeft, right: marginRight },
     tableWidth: contentWidth,
-    head: [['Projektname', 'Kom. Nr.', 'MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'Total', 'Spesen', 'Bemerkungen']],
+    head: [['Projektname', 'Kom. Nr.', 'MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO', 'Total', 'Spesen', 'Bemerkungen']],
     body: regularBody,
     theme: 'grid',
     styles: {
@@ -558,7 +558,7 @@ function drawWeeklyReportPage(pdf, { profile, weekRange, calendarWeek, layout })
       halign: 'center',
     },
     columnStyles: {
-      0: { cellWidth: 70 },
+      0: { cellWidth: 58 },
       1: { cellWidth: 26 },
       2: { cellWidth: 12, halign: 'center' },
       3: { cellWidth: 12, halign: 'center' },
@@ -566,9 +566,10 @@ function drawWeeklyReportPage(pdf, { profile, weekRange, calendarWeek, layout })
       5: { cellWidth: 12, halign: 'center' },
       6: { cellWidth: 12, halign: 'center' },
       7: { cellWidth: 12, halign: 'center' },
-      8: { cellWidth: 14, halign: 'center' },
-      9: { cellWidth: 16, halign: 'center' },
-      10: { cellWidth: 77 },
+      8: { cellWidth: 12, halign: 'center' },
+      9: { cellWidth: 14, halign: 'center' },
+      10: { cellWidth: 16, halign: 'center' },
+      11: { cellWidth: 77 },
     },
   });
 
@@ -610,12 +611,12 @@ function drawReportHeader(pdf, { profile, weekRange, calendarWeek, marginLeft, c
 }
 
 function drawWeeklyTotalRow(pdf, { margin, totalsY, contentWidth, totals }) {
-  const projectWidth = 70;
+  const projectWidth = 58;
   const commissionWidth = 26;
   const dayWidth = 12;
   const totalWidth = 14;
   const expensesWidth = 16;
-  const notesWidth = contentWidth - projectWidth - commissionWidth - dayWidth * 6 - totalWidth - expensesWidth;
+  const notesWidth = contentWidth - projectWidth - commissionWidth - dayWidth * 7 - totalWidth - expensesWidth;
   let x = margin;
 
   pdf.setLineWidth(0.2);
@@ -649,10 +650,10 @@ function drawWeeklyTotalRow(pdf, { margin, totalsY, contentWidth, totals }) {
 }
 
 function drawAbsenceTable(pdf, { margin, y, width, rows }) {
-  const labelWidth = 96;
+  const labelWidth = 84;
   const dayWidth = 12;
   const totalWidth = 14;
-  const notesWidth = width - labelWidth - dayWidth * 6 - totalWidth;
+  const notesWidth = width - labelWidth - dayWidth * 7 - totalWidth;
   const rowHeight = 6;
   const absenceRows = rows.length ? rows : buildEmptyAbsenceRows();
   const height = rowHeight * absenceRows.length;
@@ -678,7 +679,7 @@ function drawAbsenceTable(pdf, { margin, y, width, rows }) {
     row.days.forEach((value, dayIndex) => {
       pdf.text(value, margin + labelWidth + dayWidth * dayIndex + dayWidth / 2, currentY + 4.2, { align: 'center' });
     });
-    pdf.text(row.total, margin + labelWidth + dayWidth * 6 + totalWidth / 2, currentY + 4.2, { align: 'center' });
+    pdf.text(row.total, margin + labelWidth + dayWidth * 7 + totalWidth / 2, currentY + 4.2, { align: 'center' });
     if (row.notes) {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(7.2);
@@ -830,8 +831,8 @@ function buildWeeklyMatrixRows(reports) {
       groups.set(key, {
         projectName: isSchoolReport(report) ? 'Berufsschule' : (projectName || 'Ohne Projektname'),
         commission: commission || (isSchoolLikeEntry ? '' : '–'),
-        days: Array(6).fill(''),
-        dailyMinutes: Array(6).fill(0),
+        days: Array(7).fill(''),
+        dailyMinutes: Array(7).fill(0),
         totalMinutes: 0,
         expenses: 0,
         lunchExpenses: new Map(),
@@ -842,7 +843,7 @@ function buildWeeklyMatrixRows(reports) {
     }
 
     const dayIndex = getWeekdayIndex(report.work_date);
-    if (dayIndex < 0 || dayIndex > 5) {
+    if (dayIndex < 0 || dayIndex > 6) {
       return;
     }
 
@@ -921,7 +922,7 @@ function buildAbsenceMatrixRows(reports) {
     .map((category) => ({
     typeCode: category.typeCode,
     label: category.label,
-    days: Array(6).fill(0),
+    days: Array(7).fill(0),
     totalMinutes: 0,
     notes: [],
   }));
@@ -934,7 +935,7 @@ function buildAbsenceMatrixRows(reports) {
 
     const row = rows.find((item) => item.typeCode === absenceTypeCode);
     const dayIndex = getWeekdayIndex(report.work_date);
-    if (!row || dayIndex < 0 || dayIndex > 5) {
+    if (!row || dayIndex < 0 || dayIndex > 6) {
       return;
     }
 
@@ -958,7 +959,7 @@ function buildAbsenceMatrixRows(reports) {
   const totalAbsenceMinutes = rows.reduce((sum, row) => sum + row.totalMinutes, 0);
   normalizedRows.push({
     label: 'Total Absenzen',
-    days: Array(6).fill(''),
+    days: Array(7).fill(''),
     total: totalAbsenceMinutes ? formatHours(totalAbsenceMinutes) : '',
     notes: '',
   });
