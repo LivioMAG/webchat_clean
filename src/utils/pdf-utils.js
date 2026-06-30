@@ -864,6 +864,8 @@ function buildWeeklyMatrixRows(reports) {
       lunchExpense.count += 1;
       current.lunchExpenses.set(amountKey, lunchExpense);
     }
+    const weekendWorkRemark = buildWeekendWorkRemark(report);
+    if (weekendWorkRemark) current.notes.push(weekendWorkRemark);
     if (report.notes) current.notes.push(report.notes);
   });
 
@@ -879,6 +881,30 @@ function buildWeeklyMatrixRows(reports) {
   });
 
   return [...groups.values()];
+}
+
+function buildWeekendWorkRemark(report) {
+  const dayIndex = getWeekdayIndex(report?.work_date);
+  if (dayIndex !== 5 && dayIndex !== 6) {
+    return '';
+  }
+
+  const startTime = normalizePdfTime(report?.start_time);
+  const endTime = normalizePdfTime(report?.end_time);
+  if (!startTime || !endTime || (startTime === '00:00' && endTime === '00:00')) {
+    return '';
+  }
+
+  return `${startTime} - ${endTime} ${dayIndex === 5 ? 'Sa.' : 'So.'}`;
+}
+
+function normalizePdfTime(value) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    return '';
+  }
+
+  return `${match[1].padStart(2, '0')}:${match[2]}`;
 }
 
 function buildPdfRemarkCell(expenseNotes = [], remarks = []) {
@@ -946,6 +972,8 @@ function buildAbsenceMatrixRows(reports) {
     const commissionNumber = String(report.commission_number || '').trim();
     if (projectName) row.notes.push(projectName);
     if (!projectName && commissionNumber) row.notes.push(commissionNumber);
+    const weekendWorkRemark = buildWeekendWorkRemark(report);
+    if (weekendWorkRemark) row.notes.push(weekendWorkRemark);
     if (report.notes) row.notes.push(truncatePdfRemark(report.notes));
   });
 
