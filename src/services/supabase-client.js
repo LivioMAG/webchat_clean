@@ -10,7 +10,7 @@ async function initializeSupabase() {
       throw new Error('Konfigurationsdatei nicht gefunden. Demo-Modus aktiv.');
     }
 
-    const config = await response.json();
+    const config = parseSupabaseConfig(await response.text());
     if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
       throw new Error('config/supabase-config.json ist unvollständig. Demo-Modus aktiv.');
     }
@@ -38,6 +38,22 @@ async function initializeSupabase() {
     console.warn(error);
     state.isDemoMode = true;
     setConnectionBadge('Demo-Modus', true);
-    showLoginMessage(`${error.message} Mit Demo-Daten kann das UI trotzdem geprüft werden.`, false);
+    showLoginMessage(`${getSupabaseConfigErrorMessage(error)} Mit Demo-Daten kann das UI trotzdem geprüft werden.`, false);
   }
+}
+
+function parseSupabaseConfig(rawConfig) {
+  try {
+    return JSON.parse(rawConfig);
+  } catch (error) {
+    throw new Error(`config/supabase-config.json enthält ungültiges JSON: ${formatJsonParseError(error)}. Demo-Modus aktiv.`);
+  }
+}
+
+function formatJsonParseError(error) {
+  return error?.message || 'Die Datei konnte nicht gelesen werden';
+}
+
+function getSupabaseConfigErrorMessage(error) {
+  return error?.message || 'Supabase-Konfiguration konnte nicht geladen werden. Demo-Modus aktiv.';
 }
