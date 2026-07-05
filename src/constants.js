@@ -7,6 +7,8 @@ const DISPO_ITEMS_LEGACY_PREFIX = '__dispo_items__:';
 const DISPO_DEFAULT_START_TIME = '07:00';
 const DISPO_DEFAULT_END_TIME = '16:30';
 const DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL = 'https://n8n.voltlog.cloud/webhook/voice-agent-retell';
+const DEFAULT_MISSING_REPORTS_CALL_MOBILE_URL = 'https://marechaux.io/mobile';
+const INCOMPLETE_REPORT_MINIMUM_RATIO = 0.9;
 const APP_ROLE_OPTIONS = ['Lehrling', 'Elektroinstallateur', 'Bauleiter', 'Projektleiter', 'Service', 'Temporär'];
 const SCHOOL_DAY_OPTIONS = [
   { value: 1, label: 'Montag' },
@@ -721,6 +723,7 @@ const state = {
   supabase: null,
   supabaseAnonKey: '',
   missingReportsCallWebhookUrl: DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL,
+  missingReportsCallMobileUrl: DEFAULT_MISSING_REPORTS_CALL_MOBILE_URL,
   session: null,
   user: null,
   currentProfile: null,

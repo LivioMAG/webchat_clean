@@ -21,6 +21,11 @@ async function initializeSupabase() {
       || config?.missingReportsCallWebhookUrl
       || DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL,
     ).trim() || DEFAULT_MISSING_REPORTS_CALL_WEBHOOK_URL;
+    state.missingReportsCallMobileUrl = String(
+      config?.webhooks?.missingReportsCallMobileUrl
+      || config?.missingReportsCallMobileUrl
+      || DEFAULT_MISSING_REPORTS_CALL_MOBILE_URL,
+    ).trim() || DEFAULT_MISSING_REPORTS_CALL_MOBILE_URL;
     state.supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
       auth: {
         persistSession: true,
