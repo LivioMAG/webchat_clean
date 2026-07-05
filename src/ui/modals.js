@@ -180,6 +180,8 @@ function getMissingReportsCallPayload(entry, weekValue, delegatorPhone) {
     return { error: fullName || profile?.email || 'Unbekannt' };
   }
   const names = splitNameParts(fullName);
+  const reportedHours = Number((Number(entry?.totalMinutes || 0) / 60).toFixed(2));
+  const isMissingOrIncompleteReport = ['missing', 'incomplete'].includes(String(entry?.status || '').trim());
   return {
     payload: {
       name: names.name || fullName,
@@ -187,6 +189,11 @@ function getMissingReportsCallPayload(entry, weekValue, delegatorPhone) {
       full_name: fullName,
       phone,
       week: weekValue,
+      calendar_week: weekValue,
+      calendar_week_label: getWeekLabel(weekValue),
+      mobile_url: state.missingReportsCallMobileUrl || DEFAULT_MISSING_REPORTS_CALL_MOBILE_URL,
+      reported_hours: reportedHours,
+      report_missing_or_incomplete: isMissingOrIncompleteReport,
       delegator_phone: delegatorPhone,
     },
     fullName: fullName || 'Unbekannt',

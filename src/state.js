@@ -10,7 +10,7 @@ function getIncompleteSubmissionProfiles({ selectedOnly = false } = {}) {
     const reportedWeekdayCount = getReportedWeekdayCount(reports);
     const reportedWeekdayLabel = formatReportedWeekdayCount(reportedWeekdayCount);
     const weeklyHours = Number(profile.weekly_hours || 40);
-    const minimumMinutes = weeklyHours * 60 * 0.8;
+    const minimumMinutes = weeklyHours * 60 * INCOMPLETE_REPORT_MINIMUM_RATIO;
 
     if (!reportedWeekdayCount) {
       return [{
@@ -34,7 +34,7 @@ function getIncompleteSubmissionProfiles({ selectedOnly = false } = {}) {
         descriptions.push(`In dieser Woche wurde nur an ${reportedWeekdayLabel} rapportiert.`);
       }
       if (hasTooFewReportedMinutes) {
-        descriptions.push(`Die rapportierte Zeit liegt unter 80% der Sollzeit (${(minimumMinutes / 60).toFixed(2)} h).`);
+        descriptions.push(`Die rapportierte Zeit liegt unter 90% der Sollzeit (${(minimumMinutes / 60).toFixed(2)} h).`);
       }
 
       return [{
